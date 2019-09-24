@@ -11,13 +11,12 @@
  * It uses a singly-linked list to represent the set of queue elements
  */
 
+//#include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "harness.h"
 #include "queue.h"
-
 /*
   Create empty queue.
   Return NULL if could not allocate space.
@@ -26,7 +25,13 @@ queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
     /* What if malloc returned NULL? */
+    if (!q) {
+        printf("Fail to new Queue\n");
+        return NULL;
+    }
     q->head = NULL;
+    q->tail = NULL;
+    q->size = 0;
     return q;
 }
 
@@ -34,7 +39,15 @@ queue_t *q_new()
 void q_free(queue_t *q)
 {
     /* How about freeing the list elements and the strings? */
-    /* Free queue structure */
+    if (!q)
+        return;
+    list_ele_t *ptr = NULL;
+    while (q->head) {
+        ptr = q->head;
+        q->head = q->head->next;
+        free(ptr->value);
+        free(ptr);
+    }
     free(q);
 }
 
@@ -47,13 +60,27 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, char *s)
 {
+    // printf("%p\n",(void*)s);//used to debug
     list_ele_t *newh;
-    /* What should you do if the q is NULL? */
     newh = malloc(sizeof(list_ele_t));
-    /* Don't forget to allocate space for the string and copy it */
-    /* What if either call to malloc returns NULL? */
+    if (!newh) {
+        printf("Allocate fail!!\n");
+        return false;
+    }
+
+    /*  char *in;
+      in = malloc((strlen(s)+1) * sizeof(char));
+      memset(in , 0 , sizeof(s));
+      strncpy(in , s , strlen(s));
+     */
+    char *in = malloc((strlen(s) + 1) * sizeof(char));
+    strcpy(in, s);
+    newh->value = in;
     newh->next = q->head;
+    if (!q->tail)
+        q->tail = newh;
     q->head = newh;
+    q->size++;
     return true;
 }
 
@@ -69,7 +96,36 @@ bool q_insert_tail(queue_t *q, char *s)
 {
     /* You need to write the complete code for this function */
     /* Remember: It should operate in O(1) time */
-    return false;
+    list_ele_t *newt;
+    newt = malloc(sizeof(list_ele_t));
+    if (!newt) {
+        printf("Allocate fail!!\n");
+        return false;
+    }
+    /*
+    char *in;
+    in = malloc((strlen(s)+1) * sizeof(char));
+    memset(in , 0 , sizeof(s));
+    strncpy(in , s , strlen(s));
+   */
+    char *in = malloc((strlen(s) + 1) * sizeof(char));  //+1 is a point
+    strcpy(in, s);
+    newt->value = in;
+    newt->next = NULL;
+    if (!q->tail && !q->head) {
+        q->tail = newt;
+        q->head = newt;
+    } else {
+        if (!q->tail) {
+            q->tail = newt;
+
+        } else {
+            q->tail->next = newt;
+            q->tail = newt;
+        }
+    }
+    q->size++;
+    return true;
 }
 
 /*
@@ -83,7 +139,17 @@ bool q_insert_tail(queue_t *q, char *s)
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
     /* You need to fix up this code. */
+    if (!q)
+        return false;
+    list_ele_t *rm = NULL;  // do not malloc for rm ptr , it will cause a block
+                            // can't re removed
+    // char *temp = malloc((strlen(q->head->value)+1) * sizeof(char));
+    rm = q->head;
+    if (sp)
+        strcpy(sp, q->head->value);
     q->head = q->head->next;
+    free(rm->value);
+    free(rm);
     return true;
 }
 
@@ -95,7 +161,7 @@ int q_size(queue_t *q)
 {
     /* You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
-    return 0;
+    return q->size;
 }
 
 /*
@@ -108,4 +174,17 @@ int q_size(queue_t *q)
 void q_reverse(queue_t *q)
 {
     /* You need to write the code for this function */
+    list_ele_t *pre;
+    list_ele_t *middle;
+    list_ele_t *last;
+    pre = q->head;
+    middle = NULL;
+    last = NULL;
+    while (pre) {
+        last = middle;
+        middle = pre;
+        pre = pre->next;
+        middle->next = last;
+    }
+    q->head = middle;
 }
