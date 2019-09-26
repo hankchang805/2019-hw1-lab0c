@@ -61,6 +61,8 @@ void q_free(queue_t *q)
 bool q_insert_head(queue_t *q, char *s)
 {
     // printf("%p\n",(void*)s);//used to debug
+    if (!q)
+        return false;
     list_ele_t *newh;
     newh = malloc(sizeof(list_ele_t));
     if (!newh) {
@@ -74,6 +76,10 @@ bool q_insert_head(queue_t *q, char *s)
       strncpy(in , s , strlen(s));
      */
     char *in = malloc((strlen(s) + 1) * sizeof(char));
+    if (!in) {
+        free(newh);
+        return false;
+    }
     strcpy(in, s);
     newh->value = in;
     newh->next = q->head;
@@ -96,6 +102,8 @@ bool q_insert_tail(queue_t *q, char *s)
 {
     /* You need to write the complete code for this function */
     /* Remember: It should operate in O(1) time */
+    if (!q)
+        return false;
     list_ele_t *newt;
     newt = malloc(sizeof(list_ele_t));
     if (!newt) {
@@ -109,6 +117,10 @@ bool q_insert_tail(queue_t *q, char *s)
     strncpy(in , s , strlen(s));
    */
     char *in = malloc((strlen(s) + 1) * sizeof(char));  //+1 is a point
+    if (!in) {
+        free(newt);
+        return false;
+    }
     strcpy(in, s);
     newt->value = in;
     newt->next = NULL;
@@ -144,12 +156,17 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
     list_ele_t *rm = NULL;  // do not malloc for rm ptr , it will cause a block
                             // can't re removed
     // char *temp = malloc((strlen(q->head->value)+1) * sizeof(char));
+    if (!q->head)
+        return false;
     rm = q->head;
-    if (sp)
-        strcpy(sp, q->head->value);
+    if (sp) {
+        strncpy(sp, q->head->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
     q->head = q->head->next;
     free(rm->value);
     free(rm);
+    q->size--;
     return true;
 }
 
@@ -161,6 +178,8 @@ int q_size(queue_t *q)
 {
     /* You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
+    if (!q)
+        return 0;
     return q->size;
 }
 
@@ -174,6 +193,8 @@ int q_size(queue_t *q)
 void q_reverse(queue_t *q)
 {
     /* You need to write the code for this function */
+    if (!q)
+        return;
     list_ele_t *pre;
     list_ele_t *middle;
     list_ele_t *last;
@@ -186,5 +207,6 @@ void q_reverse(queue_t *q)
         pre = pre->next;
         middle->next = last;
     }
+    q->tail = q->head;
     q->head = middle;
 }
